@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inside The Baseline</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --clay: #C8553D;
+    --clay-dark: #A03E2A;
+    --cream: #F5F0E8;
+    --ink: #1A1714;
+    --ink-light: #3D3630;
+    --sand: #E8DFD0;
+    --green: #2D5016;
+    --green-light: #4A7A28;
+    --white: #FDFAF5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 48px;
+    background: var(--cream);
+    border-bottom: 1px solid rgba(26,23,20,0.12);
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .nav-logo span { color: var(--clay); }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--clay); }
+
+  .nav-cta {
+    background: var(--clay);
+    color: var(--white) !important;
+    padding: 10px 22px;
+    border-radius: 2px;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.12em !important;
+    transition: background 0.2s !important;
+  }
+
+  .nav-cta:hover { background: var(--clay-dark) !important; color: var(--white) !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding-top: 72px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 48px 80px 80px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--clay);
+  }
+
+  .hero-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(3rem, 5vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    color: var(--ink);
+    margin-bottom: 28px;
+  }
+
+  .hero-headline em {
+    font-style: italic;
+    color: var(--clay);
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--ink-light);
+    max-width: 420px;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    background: var(--clay);
+    color: var(--white);
+    padding: 16px 36px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: background 0.2s, transform 0.2s;
+    display: inline-block;
+  }
+
+  .btn-primary:hover {
+    background: var(--clay-dark);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-decoration: none;
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 2px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .btn-secondary:hover { color: var(--clay); border-color: var(--clay); }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 64px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(26,23,20,0.12);
+  }
+
+  .stat-item {}
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-top: 4px;
+    font-weight: 400;
+  }
+
+  .hero-right {
+    background: var(--ink);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .court-graphic {
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+  }
+
+  .hero-right-content {
+    position: relative;
+    z-index: 2;
+    padding: 48px;
+    width: 100%;
+  }
+
+  .featured-issue {
+    border: 1px solid rgba(245,240,232,0.15);
+    padding: 40px;
+    position: relative;
+  }
+
+  .featured-issue::before {
+    content: 'LATEST ISSUE';
+    position: absolute;
+    top: -10px;
+    left: 24px;
+    background: var(--clay);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    padding: 3px 10px;
+  }
+
+  .issue-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: rgba(245,240,232,0.4);
+    margin-bottom: 16px;
+  }
+
+  .issue-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+
+  .issue-excerpt {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: rgba(245,240,232,0.6);
+    font-weight: 300;
+    margin-bottom: 28px;
+  }
+
+  .issue-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border: 1px solid rgba(245,240,232,0.2);
+    color: rgba(245,240,232,0.5);
+  }
+
+  .tag.hot { border-color: var(--clay); color: var(--clay); }
+
+  .read-link {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--clay);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: gap 0.2s;
+  }
+
+  .read-link:hover { gap: 14px; }
+
+  /* ── TICKER ── */
+  .ticker {
+    background: var(--clay);
+    color: var(--white);
+    padding: 12px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ticker-inner {
+    display: inline-flex;
+    gap: 0;
+    animation: ticker 30s linear infinite;
+  }
+
+  .ticker-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0 40px;
+    border-right: 1px solid rgba(255,255,255,0.3);
+  }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ── ABOUT ── */
+  .about {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 60vh;
+  }
+
+  .about-left {
+    background: var(--green);
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .about-left::after {
+    content: '◉';
+    position: absolute;
+    bottom: -40px;
+    right: -20px;
+    font-size: 180px;
+    color: rgba(255,255,255,0.04);
+    line-height: 1;
+  }
+
+  .about-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.5);
+    margin-bottom: 24px;
+  }
+
+  .about-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 700;
+    color: var(--cream);
+    line-height: 1.15;
+    margin-bottom: 24px;
+  }
+
+  .about-headline em {
+    font-style: italic;
+    color: rgba(245,240,232,0.6);
+  }
+
+  .about-body {
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: rgba(245,240,232,0.7);
+    font-weight: 300;
+    max-width: 380px;
+  }
+
+  .about-right {
+    background: var(--sand);
+    padding: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 32px;
+  }
+
+  .coverage-item {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(26,23,20,0.1);
+  }
+
+  .coverage-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .coverage-icon {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--clay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
+  .coverage-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+
+  .coverage-desc {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: var(--ink-light);
+    font-weight: 300;
+  }
+
+  /* ── ISSUES ── */
+  .issues {
+    padding: 100px 80px;
+    background: var(--white);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 56px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(26,23,20,0.12);
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--ink);
+  }
+
+  .view-all {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+    transition: color 0.2s;
+  }
+
+  .view-all:hover { color: var(--clay); }
+
+  .issues-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+  }
+
+  .issue-card {
+    background: var(--cream);
+    padding: 40px 36px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+
+  .issue-card:hover { background: var(--sand); }
+
+  .issue-card-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--clay);
+    margin-bottom: 20px;
+  }
+
+  .issue-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 16px;
+    color: var(--ink);
+  }
+
+  .issue-card-excerpt {
+    font-size: 0.8rem;
+    line-height: 1.7;
+    color: var(--ink-light);
+    font-weight: 300;
+    margin-bottom: 28px;
+  }
+
+  .issue-card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .issue-card-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: rgba(26,23,20,0.4);
+  }
+
+  .issue-card-arrow {
+    color: var(--clay);
+    font-size: 1rem;
+    transition: transform 0.2s;
+  }
+
+  .issue-card:hover .issue-card-arrow { transform: translateX(4px); }
+
+  /* ── ABOUT ME ── */
+  .about-me {
+    padding: 100px 80px;
+    background: var(--cream);
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .about-me-photo-wrap {
+    position: relative;
+  }
+
+  .about-me-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: grayscale(15%);
+  }
+
+  .about-me-photo-placeholder {
+    width: 100%;
+    aspect-ratio: 3/4;
+    background: var(--sand);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: 2px dashed rgba(26,23,20,0.15);
+    color: rgba(26,23,20,0.3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .about-me-photo-placeholder span {
+    font-size: 2rem;
+  }
+
+  .about-me-photo-accent {
+    position: absolute;
+    bottom: -16px;
+    right: -16px;
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--clay);
+    z-index: -1;
+  }
+
+  .about-me-content {}
+
+  .about-me-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .about-me-label::before {
+    content: '';
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: var(--clay);
+  }
+
+  .about-me-name {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3vw, 3rem);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+
+  .about-me-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 32px;
+    opacity: 0.6;
+  }
+
+  .about-me-bio {
+    font-size: 0.95rem;
+    line-height: 1.85;
+    color: var(--ink-light);
+    font-weight: 300;
+    margin-bottom: 40px;
+  }
+
+  .about-me-bio strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .about-me-credentials {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid rgba(26,23,20,0.12);
+  }
+
+  .credential {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(26,23,20,0.08);
+  }
+
+  .credential-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--clay);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .credential-text {
+    font-size: 0.82rem;
+    color: var(--ink-light);
+    font-weight: 400;
+  }
+
+  .credential-text strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  /* ── NEWSLETTER CTA ── */
+  .newsletter-cta {
+    background: var(--ink);
+    padding: 100px 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .newsletter-cta::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 400px;
+    height: 400px;
+    border: 1px solid rgba(200,85,61,0.15);
+    border-radius: 50%;
+  }
+
+  .newsletter-cta::after {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 280px;
+    height: 280px;
+    border: 1px solid rgba(200,85,61,0.1);
+    border-radius: 50%;
+  }
+
+  .cta-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--clay);
+    margin-bottom: 20px;
+  }
+
+  .cta-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 3vw, 3.2rem);
+    font-weight: 900;
+    color: var(--cream);
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+
+  .cta-headline em { font-style: italic; color: var(--clay); }
+
+  .cta-sub {
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: rgba(245,240,232,0.5);
+    font-weight: 300;
+  }
+
+  .cta-form {
+    position: relative;
+    z-index: 2;
+  }
+
+  .cta-form-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-input {
+    background: rgba(245,240,232,0.06);
+    border: 1px solid rgba(245,240,232,0.15);
+    color: var(--cream);
+    padding: 16px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  .form-input::placeholder { color: rgba(245,240,232,0.3); }
+  .form-input:focus { border-color: var(--clay); }
+
+  .form-btn {
+    background: var(--clay);
+    color: var(--white);
+    border: none;
+    padding: 16px 36px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+  }
+
+  .form-btn:hover { background: var(--clay-dark); }
+
+  .form-note {
+    font-size: 0.7rem;
+    color: rgba(245,240,232,0.3);
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+
+  /* ── SOCIALS ── */
+  .socials {
+    background: var(--sand);
+    padding: 64px 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+
+  .socials-left {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .socials-left span { font-style: italic; color: var(--clay); }
+
+  .social-links {
+    display: flex;
+    gap: 16px;
+  }
+
+  .social-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border: 1px solid rgba(26,23,20,0.15);
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    background: var(--white);
+  }
+
+  .social-link:hover {
+    background: var(--clay);
+    color: var(--white);
+    border-color: var(--clay);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    padding: 48px 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 24px;
+  }
+
+  .footer-logo {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--cream);
+    letter-spacing: 0.04em;
+  }
+
+  .footer-logo span { color: var(--clay); }
+
+  .footer-tagline {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.3);
+    margin-top: 4px;
+  }
+
+  .footer-right {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: rgba(245,240,232,0.3);
+    text-align: right;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow { animation: fadeUp 0.6s ease forwards; }
+  .hero-headline { animation: fadeUp 0.6s 0.1s ease both; }
+  .hero-sub { animation: fadeUp 0.6s 0.2s ease both; }
+  .hero-actions { animation: fadeUp 0.6s 0.3s ease both; }
+  .hero-stats { animation: fadeUp 0.6s 0.4s ease both; }
+  .featured-issue { animation: fadeUp 0.8s 0.2s ease both; }
+
+  /* ── COURT SVG LINES ── */
+  .court-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Inside The <span>Baseline</span></a>
+  <ul class="nav-links">
+    <li><a href="#issues">Newsletter</a></li>
+    <li><a href="#podcast">Podcast</a></li>
+    <li><a href="#shop">Shop</a></li>
+    <li><a href="#about-me">About Me</a></li>
+    <li><a href="#subscribe" class="nav-cta">Subscribe Free</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">Tennis from the inside out</div>
+    <h1 class="hero-headline">
+      Pro Tour.<br>
+      College Game.<br>
+      <em>All of It.</em>
+    </h1>
+    <p class="hero-sub">
+      The only newsletter covering professional tennis and college tennis together — in one place, every week.
+    </p>
+    <div class="hero-actions">
+      <a href="https://insidethebaseline.substack.com" class="btn-primary">Subscribe Free →</a>
+      <a href="#issues" class="btn-secondary">Read the Archive</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-item">
+        <a href="https://www.ncaa.com/brackets/tennis-men/d1/2026" target="_blank" style="text-decoration:none; color: inherit;">
+          <div class="stat-num" style="font-size:1.1rem;">🎾 Men's</div>
+          <div class="stat-label">NCAA Bracket →</div>
+        </a>
+      </div>
+      <div class="stat-item">
+        <a href="https://www.ncaa.com/brackets/tennis-women/d1/2026" target="_blank" style="text-decoration:none; color: inherit;">
+          <div class="stat-num" style="font-size:1.1rem;">🎾 Women's</div>
+          <div class="stat-label">NCAA Bracket →</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <!-- Court line graphic -->
+    <svg class="court-lines" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice">
+      <g stroke="rgba(245,240,232,1)" stroke-width="1" fill="none">
+        <!-- Court outline -->
+        <rect x="80" y="100" width="440" height="600"/>
+        <!-- Service boxes -->
+        <line x1="80" y1="400" x2="520" y2="400"/>
+        <line x1="300" y1="100" x2="300" y2="700"/>
+        <line x1="80" y1="250" x2="520" y2="250"/>
+        <line x1="80" y1="550" x2="520" y2="550"/>
+        <!-- Net -->
+        <line x1="60" y1="400" x2="540" y2="400" stroke-width="3"/>
+        <!-- Baseline marks -->
+        <line x1="270" y1="95" x2="330" y2="95"/>
+        <line x1="270" y1="705" x2="330" y2="705"/>
+      </g>
+    </svg>
+
+    <div class="hero-right-content">
+      <div class="featured-issue">
+        <div class="issue-num">ISSUE #4 — APR 30, 2026</div>
+        <div class="issue-title">My 2026 NCAA Men's Tournament Breakdown</div>
+        <p class="issue-excerpt">Favorites, sleepers, and the teams about to cause chaos. My full breakdown of the NCAA Men's Tennis bracket — who's going to Athens and who's going home early.</p>
+        <div class="issue-tags">
+          <span class="tag hot">NCAA Tournament</span>
+          <span class="tag">College Tennis</span>
+          <span class="tag">Analysis</span>
+        </div>
+        <a href="https://insidethebaseline.substack.com" class="read-link">Read Issue →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">Madrid Open Coverage</span>
+    <span class="ticker-item">College Tennis Pipeline</span>
+    <span class="ticker-item">NCAA Tournament</span>
+    <span class="ticker-item">ATP · WTA · ITA</span>
+    <span class="ticker-item">Pro Tour Recaps</span>
+    <span class="ticker-item">College Program News</span>
+    <span class="ticker-item">Inside The Baseline</span>
+    <span class="ticker-item">Madrid Open Coverage</span>
+    <span class="ticker-item">College Tennis Pipeline</span>
+    <span class="ticker-item">NCAA Tournament</span>
+    <span class="ticker-item">ATP · WTA · ITA</span>
+    <span class="ticker-item">Pro Tour Recaps</span>
+    <span class="ticker-item">College Program News</span>
+    <span class="ticker-item">Inside The Baseline</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="about-left">
+    <div class="about-label">What we cover</div>
+    <h2 class="about-headline">Tennis media was missing <em>the full picture.</em></h2>
+    <p class="about-body">Most outlets cover the pro tour. A few cover college. Nobody was doing both — seriously, consistently, in one place. Inside the Baseline exists to fix that.</p>
+  </div>
+  <div class="about-right">
+    <div class="coverage-item">
+      <div class="coverage-icon">🎾</div>
+      <div>
+        <div class="coverage-title">Pro Tour Coverage</div>
+        <p class="coverage-desc">ATP & WTA live updates, match recaps, tournament breakdowns, and the storylines behind the results.</p>
+      </div>
+    </div>
+    <div class="coverage-item">
+      <div class="coverage-icon">🏫</div>
+      <div>
+        <div class="coverage-title">College Tennis</div>
+        <p class="coverage-desc">ITA rankings, program news, NCAA tournament coverage, and the college players you'll be watching on tour soon.</p>
+      </div>
+    </div>
+    <div class="coverage-item">
+      <div class="coverage-icon">📡</div>
+      <div>
+        <div class="coverage-title">The Pipeline</div>
+        <p class="coverage-desc">Tracking college-trained players making their mark on the ATP and WTA — the thread connecting both worlds.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ISSUES -->
+<section class="issues" id="issues">
+  <div class="section-header">
+    <div>
+      <div class="section-label">The Archive</div>
+      <div class="section-title">Recent Issues</div>
+    </div>
+    <a href="https://insidethebaseline.substack.com" class="view-all">View All →</a>
+  </div>
+  <div class="issues-grid">
+    <a href="https://insidethebaseline.substack.com" class="issue-card">
+      <div class="issue-card-num">Issue #4 · Apr 30, 2026</div>
+      <div class="issue-card-title">My 2026 NCAA Men's Tournament Breakdown</div>
+      <p class="issue-card-excerpt">Favorites, sleepers, and the teams about to cause chaos. Full bracket analysis — who's going to Athens and who's going home early.</p>
+      <div class="issue-card-meta">
+        <span class="issue-card-date">NCAA Tournament</span>
+        <span class="issue-card-arrow">→</span>
+      </div>
+    </a>
+    <a href="https://insidethebaseline.substack.com" class="issue-card">
+      <div class="issue-card-num">Issue #3 · Apr 26, 2026</div>
+      <div class="issue-card-title">When the Net Comes Down</div>
+      <p class="issue-card-excerpt">Arkansas cuts tennis. The ripple effects across college tennis and what it means for the sport's future at the college level.</p>
+      <div class="issue-card-meta">
+        <span class="issue-card-date">College Tennis</span>
+        <span class="issue-card-arrow">→</span>
+      </div>
+    </a>
+    <a href="https://insidethebaseline.substack.com" class="issue-card">
+      <div class="issue-card-num">Issue #2 · Apr 23, 2026</div>
+      <div class="issue-card-title">Auburn Makes History, the SEC Takes Over, and Madrid Begins</div>
+      <p class="issue-card-excerpt">Auburn's historic run, SEC dominance in college tennis, and the Madrid Open draw drops with familiar college faces throughout.</p>
+      <div class="issue-card-meta">
+        <span class="issue-card-date">Pro + College</span>
+        <span class="issue-card-arrow">→</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- ABOUT ME -->
+<section class="about-me" id="about-me">
+  <div class="about-me-photo-wrap">
+    <div class="about-me-photo-placeholder">
+      <span>📷</span>
+      Your photo here
+    </div>
+    <div class="about-me-photo-accent"></div>
+  </div>
+  <div class="about-me-content">
+    <div class="about-me-label">The Writer</div>
+    <h2 class="about-me-name">Gray Walker</h2>
+    <div class="about-me-title">Founder · Inside The Baseline</div>
+    <p class="about-me-bio">
+      I didn't just grow up watching tennis — I played it. As a <strong>collegiate player at Point University</strong>, I understand the game from the inside: the grind of college tennis, the gap between college and the pro tour, and everything in between.<br><br>
+      Inside the Baseline started because I couldn't find a single publication that took both the pro game and college tennis seriously. So I built it. Based in <strong>Opelika, Alabama</strong>, I cover everything from ATP and WTA tour results to ITA rankings, NCAA tournaments, and the coaches and programs shaping the next generation of pros.
+    </p>
+    <div class="about-me-credentials">
+      <div class="credential">
+        <div class="credential-icon">🎾</div>
+        <div class="credential-text"><strong>College Tennis Athlete</strong> — Point University</div>
+      </div>
+      <div class="credential">
+        <div class="credential-icon">📍</div>
+        <div class="credential-text"><strong>Based in</strong> Opelika, Alabama</div>
+      </div>
+      <div class="credential">
+        <div class="credential-icon">✍️</div>
+        <div class="credential-text"><strong>Covering</strong> ATP · WTA · ITA · NCAA Tennis</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PODCAST -->
+<section id="podcast" style="padding: 100px 80px; background: var(--ink); text-align: center;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    <div style="font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--clay); margin-bottom: 20px;">Coming Soon</div>
+    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 3rem); font-weight: 900; color: var(--cream); line-height: 1.1; margin-bottom: 20px;">The Inside The Baseline <em style="font-style:italic; color: var(--clay);">Podcast</em></h2>
+    <p style="font-size: 0.9rem; line-height: 1.7; color: rgba(245,240,232,0.5); font-weight: 300;">Interviews with coaches, players, and the people shaping college and pro tennis. Dropping soon.</p>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop" style="padding: 100px 80px; background: var(--sand); text-align: center;">
+  <div style="max-width: 600px; margin: 0 auto;">
+    <div style="font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--clay); margin-bottom: 20px;">Coming Soon</div>
+    <h2 style="font-family: 'Playfair Display', serif; font-size: clamp(2rem, 3vw, 3rem); font-weight: 900; color: var(--ink); line-height: 1.1; margin-bottom: 20px;">The ITB <em style="font-style:italic; color: var(--clay);">Shop</em></h2>
+    <p style="font-size: 0.9rem; line-height: 1.7; color: var(--ink-light); font-weight: 300;">Hats, shirts, and gear for the tennis fan who lives inside the baseline. Coming soon.</p>
+  </div>
+</section>
+
+<!-- NEWSLETTER CTA -->
+<section class="newsletter-cta" id="subscribe">
+  <div>
+    <div class="cta-label">Free Newsletter</div>
+    <h2 class="cta-headline">Never miss a <em>rally.</em></h2>
+    <p class="cta-sub">Pro tour. College game. One newsletter, every week. Join readers getting the full picture of tennis — free, always.</p>
+  </div>
+  <div class="cta-form">
+    <div class="cta-form-inner">
+      <input type="email" class="form-input" placeholder="Your email address">
+      <button class="form-btn" onclick="window.open('https://insidethebaseline.substack.com','_blank')">Subscribe Free — No Spam</button>
+      <p class="form-note">Free forever · Unsubscribe anytime · No spam</p>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIALS -->
+<section class="socials">
+  <div class="socials-left">Follow along on <span>every court.</span></div>
+  <div class="social-links">
+    <a href="https://x.com/ITBTennisNews" class="social-link" target="_blank">
+      𝕏 @ITBTennisNews
+    </a>
+    <a href="https://insidethebaseline.substack.com" class="social-link" target="_blank">
+      ✉ Substack
+    </a>
+    <a href="https://instagram.com/itb_tennisnews" class="social-link" target="_blank">
+      ◎ Instagram
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">Inside The <span>Baseline</span></div>
+    <div class="footer-tagline">Tennis from the inside out</div>
+  </div>
+  <div class="footer-right">
+    © 2026 Inside The Baseline<br>
+    insidethebaseline.substack.com
+  </div>
+</footer>
+
+</body>
+</html>
